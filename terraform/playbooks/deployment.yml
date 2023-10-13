@@ -31,6 +31,15 @@
     - name: Push Docker image
       command: docker push eamanze/flask-app:latest
 
+    - name: Create namespace
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: my-dev
+
     - name: Deploy Flask App to Kubernetes
       k8s:
         state: present
@@ -54,7 +63,7 @@
               spec:
                 containers:
                   - name: flask-app
-                    image: flask-app:latest
+                    image: eamanze/flask-app:latest
                     ports:
                       - containerPort: 5000
 
