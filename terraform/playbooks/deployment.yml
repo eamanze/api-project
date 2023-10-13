@@ -25,6 +25,12 @@
       args:
         chdir: /home/ubuntu/api-project/flask_api
 
+    - name: Build Docker image
+      command: docker login -u eamanze -p &KX#+k!M2jqhGFv
+
+    - name: Build Docker image
+      command: docker push flask-app:latest
+
     - name: Deploy Flask App to Kubernetes
       k8s:
         state: present
