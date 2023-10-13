@@ -26,7 +26,7 @@
         chdir: /home/ubuntu/api-project/flask_api
 
     - name: Login into Docker Hub
-      command: sudo -c "docker login -u eamanze -p &KX#+k!M2jqhGFv" ubuntu
+      command: sudo -c 'docker login -u eamanze -p &KX#+k!M2jqhGFv' ubuntu
 
     - name: Push Docker image
       command: docker push flask-app:latest
