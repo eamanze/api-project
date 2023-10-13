@@ -41,6 +41,7 @@ sudo apt-get update -y
 sudo apt-get install software-properties-common -y
 sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo apt-get install ansible python3-pip -y
+sudo su -c "pip3 install kubernetes" ubuntu
 sudo bash -c ' echo "strictHostKeyChecking No" >> /etc/ssh/ssh_config'
 
 # Update instance and install ansible
@@ -49,6 +50,9 @@ sudo apt install docker.io -y
 sudo usermod -aG docker ubuntu
 sudo systemctl start docker
 sudo systemctl enable docker
+sudo chmod 777 /var/run/docker.sock
+sudo systemctl restart docker
+
 
 # Copying Private Key into Ansible Server and chaning its permission
 echo "${prv_key}" >> /home/ubuntu/key.pem
