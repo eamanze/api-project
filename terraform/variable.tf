@@ -1,0 +1,10 @@
+variable "profile" {}
+variable "region" {}
+variable "project-name" {}
+variable "bucket-name" {}
+variable "domain" {}
+variable "domain2" {}
+variable "cidr" {}
+variable "public-cidr" {}
+variable "private-cidr" {}
+variable "az" {}

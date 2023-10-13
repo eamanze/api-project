@@ -1,0 +1,70 @@
+---
+- name: Build and Deploy Flask App
+  hosts: localhost
+  tasks:
+
+    - name: Check if Application Repo exists
+      stat:
+        path: /home/ubuntu/api-project
+      register: repo_exists
+
+    - name: Clone or Update Application Repo
+      git:
+        repo: https://github.com/eamanze/api-project.git
+        dest: /home/ubuntu/api-project
+      when: not repo_exists.stat.exists
+
+    - name: Updating Application Repo
+      shell:
+        cmd: git pull
+        chdir: /home/ubuntu/api-project
+      when: repo_exists.stat.exists
+
+    - name: Build Docker image
+      command: docker build -t flask-app:latest .
+      args:
+        chdir: /home/ubuntu/api-project/flask_api
+
+    - name: Deploy Flask App to Kubernetes
+      k8s:
+        state: present
+        definition: 
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: flask-app
+            labels:
+              app: flask-app
+          spec:
+            replicas: 3
+            selector:
+              matchLabels:
+                app: flask-app
+            template:
+              metadata:
+                labels:
+                  app: flask-app
+              spec:
+                containers:
+                  - name: flask-app
+                    image: flask-app:latest
+                    ports:
+                      - containerPort: 5000
+
+    - name: Create Service to expose Flask App
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: flask-app-service
+          spec:
+            selector:
+              app: flask-app
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 5000
+            type: NodePort
+            nodePort: 30001

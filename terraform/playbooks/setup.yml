@@ -1,0 +1,106 @@
+---
+  - hosts: master, worker
+    remote_user: ubuntu
+    become: true
+    become_method: sudo
+    become_user: root
+    gather_facts: true
+    connection: ssh
+
+    tasks:
+     - name: Update and upgrade ubuntu environment
+       shell: |
+                sudo apt update
+
+     - name : Add Kubernetes repository to Ubuntu
+       shell: |
+                sudo apt -y install curl apt-transport-https
+                curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+                echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+     - name: Install required packages before installing kubelet, kubeadm and kubectl
+       shell: |
+                sudo apt update
+                sudo apt -y install vim git wget kubelet kubeadm kubectl
+                sudo apt-mark hold kubelet kubeadm kubectl
+
+     - name: Disable Swap and confirm that the setting is correct
+       shell: |
+                sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+                sudo swapoff -a
+                sudo mount -a
+                free -h
+
+     - name: Enable kernel modules
+       shell: |
+                sudo modprobe overlay
+                sudo modprobe br_netfilter
+
+     - name: Add some settings to sysctl
+       shell: |
+          sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.bridge.bridge-nf-call-iptables = 1
+          net.ipv4.ip_forward = 1
+          EOF
+
+     - name: Reload sysctl
+       command: sudo sysctl --system
+
+     - name: install Docker Container Runtime
+       shell: |
+                sudo apt update
+                sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" -y
+                sudo apt update
+                sudo apt install -y containerd.io docker-ce docker-ce-cli
+
+     - name: Create directory
+       shell: sudo mkdir -p /etc/systemd/system/docker.service.d
+     - name: Add conf for containerd
+       shell: |
+          sudo tee /etc/docker/daemon.json <<EOF
+          {
+             "exec-opts": ["native.cgroupdriver=systemd"],
+             "log-driver": "json-file",
+             "log-opts": {
+             "max-size": "100m"
+             },
+            "storage-driver": "overlay2"
+          }
+          EOF
+
+     - name: Start and enable docker service
+       shell: |
+                sudo systemctl daemon-reload
+                sudo systemctl restart docker
+                sudo systemctl enable docker
+
+     - name: Install required packages before downloading cri-dockerd
+       shell: |
+                sudo apt update
+                sudo apt install git wget curl
+
+
+     - name: download the latest binary package of cri-dockerd
+       shell: |
+                VER=$(curl -s https://api.github.com/repos/Mirantis/cri-dockerd/releases/latest|grep tag_name | cut -d '"' -f 4|sed 's/v//g')
+                wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VER}/cri-dockerd-${VER}.amd64.tgz
+                tar xvf cri-dockerd-${VER}.amd64.tgz
+
+     - name: Move cri-dockerd binary package to /usr/local/bin directory
+       shell: sudo mv cri-dockerd/cri-dockerd /usr/local/bin/
+
+     - name: Configure systemd units for cri-dockerd
+       shell: |
+                wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.service
+                wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.socket
+                sudo mv cri-docker.socket cri-docker.service /etc/systemd/system/
+                sudo sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+
+     - name: Start and enable the services
+       shell: |
+                sudo systemctl daemon-reload
+                sudo systemctl enable cri-docker.service
+                sudo systemctl enable --now cri-docker.socket

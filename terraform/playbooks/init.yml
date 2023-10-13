@@ -1,0 +1,68 @@
+---
+ - hosts: master
+   become: true
+   vars_files: 
+    - /home/ubuntu/ha-ip.yml
+
+   tasks:
+    
+    - name: Initialize Kubernetes on Master Node
+      shell: sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --cri-socket /run/cri-dockerd.sock --upload-certs --control-plane-endpoint {{Main_haIP}}:6443
+      register: output
+
+    - name: Storing Logs and Generated token for future purpose.
+      local_action: copy content={{ output.stdout }} dest="/tmp/token" mode=0777
+    
+    - name: make directory and copy required file to it
+      shell: |
+        sudo su -c 'mkdir -p $HOME/.kube' ubuntu
+        sudo su -c 'sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config' ubuntu
+        sudo su -c 'sudo chown $(id -u):$(id -g) $HOME/.kube/config' ubuntu
+    
+    - name: Fetch the config file from the main-master to ansible host
+      run_once: true
+      fetch: src=/home/ubuntu/.kube/config dest=/home/ubuntu/ flat=yes
+
+
+ - hosts: worker
+   become: true
+   become_method: sudo
+   become_user: root
+   gather_facts: false
+
+   tasks:
+
+     - name: Generated token - 1.
+       local_action: shell sed -n 82,83p /tmp/token > /tmp/workertoken
+      
+     - name: Copy Worker token
+       copy:
+        src: /tmp/workertoken
+        dest: /tmp/join-worker-command
+        owner: root
+        group: root
+        mode: '0777'
+
+     - name: Insert socket url at the back of token       
+       shell: sed -i '$ s/$/\ --cri-socket\ unix:\/\/\/var\/run\/cri-dockerd.sock/g' /tmp/join-worker-command
+
+     - name: Join Workers to Masters
+       command: sudo sh /tmp/join-worker-command
+
+
+ - hosts: localhost
+   tasks:
+     - name: Copy the file from ansible host to ha-lb
+       copy: src=/home/ubuntu/config dest=/home/ubuntu
+
+     - name: make directory and copy required file to it
+       shell: |
+        sudo su -c 'mkdir -p $HOME/.kube' ubuntu
+        sudo su -c 'mv /home/ubuntu/config /home/ubuntu/.kube' ubuntu
+        sudo su -c 'sudo chown $(id -u):$(id -g) $HOME/.kube/config' ubuntu
+
+     - name: Install Kubectl
+       shell: sudo snap install kubectl --classic
+
+     - name: Install weave pod network
+       command: kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
