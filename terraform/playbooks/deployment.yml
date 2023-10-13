@@ -25,15 +25,6 @@
       args:
         chdir: /home/ubuntu/api-project/flask_api
 
-    - name: Create namespace
-      k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: my-dev
-
     - name: Deploy Flask App to Kubernetes
       k8s:
         state: present
