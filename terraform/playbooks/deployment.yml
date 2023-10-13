@@ -21,7 +21,7 @@
       when: repo_exists.stat.exists
 
     - name: Build Docker image
-      command: docker build -t flask-app:latest .
+      command: docker build -t eamanze/flask-app:latest .
       args:
         chdir: /home/ubuntu/api-project/flask_api
 
@@ -29,7 +29,7 @@
       command: docker login -u eamanze -p &KX#+k!M2jqhGFv
 
     - name: Push Docker image
-      command: docker push flask-app:latest
+      command: docker push eamanze/flask-app:latest
 
     - name: Deploy Flask App to Kubernetes
       k8s:
