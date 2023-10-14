@@ -3,7 +3,7 @@ provider "aws" {
   region  = var.region
 }
 
-# Create VPC and Component
+# Create VPC and its Component
 module "vpc" {
   source              = "terraform-aws-modules/vpc/aws"
   name                = "${var.project-name}-vpc"
@@ -28,19 +28,19 @@ resource "tls_private_key" "keypair" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
-#creating private key
+# creating private key locally
 resource "local_file" "keypair" {
   content         = tls_private_key.keypair.private_key_pem
   filename        = "${var.project-name}-key.pem"
   file_permission = "600"
 }
-# creating ec2 keypair
+# creating keypair
 resource "aws_key_pair" "keypair" {
   key_name   = "${var.project-name}-key"
   public_key = tls_private_key.keypair.public_key_openssh
 }
 
-# security group for docker
+# creating security group
 resource "aws_security_group" "sg" {
   name        = "${var.project-name}-sg"
   description = "Allow Inbound Traffic"
@@ -63,9 +63,9 @@ resource "aws_security_group" "sg" {
   }
 }
 
-#creating Ec2 for master
+# creating proxy/ansible server
 resource "aws_instance" "haproxy" {
-  ami                         = "ami-0ecc74eca1d66d8a6"
+  ami                         = var.ami
   instance_type               = "t3.micro"
   subnet_id                   = module.vpc.public_subnets[0]
   vpc_security_group_ids      = [aws_security_group.sg.id]
@@ -82,7 +82,7 @@ resource "aws_instance" "haproxy" {
   }
 }
 
-#create null resource to copy playbooks directory into proxy server
+# create null resource to copy playbooks folder into ansible/proxy server
 resource "null_resource" "copy-playbooks" {
   connection {
     type                = "ssh"
@@ -96,9 +96,9 @@ resource "null_resource" "copy-playbooks" {
   }
 }
 
-#creating Ec2 for master
+# creating 1 master node
 resource "aws_instance" "master" {
-  ami                    = "ami-0ecc74eca1d66d8a6"
+  ami                    = var.ami
   instance_type          = "t2.medium"
   subnet_id              = module.vpc.private_subnets[0]
   vpc_security_group_ids = [aws_security_group.sg.id]
@@ -112,10 +112,10 @@ EOF
   }
 }
 
-#creating Ec2 for worker1
+# creating 2 worker nodes
 resource "aws_instance" "worker" {
   count                  = 2
-  ami                    = "ami-0ecc74eca1d66d8a6"
+  ami                    = var.ami
   instance_type          = "t2.medium"
   subnet_id              = element(module.vpc.private_subnets, count.index)
   vpc_security_group_ids = [aws_security_group.sg.id]
@@ -129,7 +129,7 @@ EOF
   }
 }
 
-# security group for docker
+# security group for load balancer
 resource "aws_security_group" "lb-sg" {
   name        = "${var.project-name}-lb-sg"
   description = "Allow Inbound Traffic"
@@ -152,7 +152,7 @@ resource "aws_security_group" "lb-sg" {
   }
 }
 
-# create grafana loadbalancer
+# create load balancer
 resource "aws_lb" "lb" {
   name               = "${var.project-name}-lb"
   internal           = false
@@ -165,6 +165,7 @@ resource "aws_lb" "lb" {
   }
 }
 
+# create target-group
 resource "aws_lb_target_group" "tg" {
   name     = "${var.project-name}-tg"
   port     = 30001
@@ -179,6 +180,7 @@ resource "aws_lb_target_group" "tg" {
   }
 }
 
+# create http listener
 resource "aws_lb_listener" "listener" {
   load_balancer_arn = aws_lb.lb.arn
   port              = "80"
@@ -190,18 +192,7 @@ resource "aws_lb_listener" "listener" {
   }
 }
 
-# resource "aws_lb_listener" "tg-listener2" {
-#   load_balancer_arn = aws_lb.tg.arn
-#   port              = "443"
-#   protocol          = "HTTPS"
-#   ssl_policy        = "ELBSecurityPolicy-2016-08"
-#   certificate_arn   = var.acm_certificate
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.tg.arn
-#   }
-# }
-
+# create target-group-attachment
 resource "aws_lb_target_group_attachment" "tg-attachment" {
   target_group_arn = aws_lb_target_group.tg.arn
   target_id        = aws_instance.worker[count.index].id
