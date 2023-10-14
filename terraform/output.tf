@@ -7,3 +7,6 @@ output "workers" {
 output "proxy" {
   value = aws_instance.haproxy.public_ip
 }
+output "lb" {
+  value = aws_lb.lb.dns_name
+}

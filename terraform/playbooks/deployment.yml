@@ -77,11 +77,11 @@
             name: flask-app-service
             namespace: my-dev
           spec:
+            type: NodePort
             selector:
               app: flask-app
             ports:
               - protocol: TCP
                 port: 80
                 targetPort: 5000
-            type: NodePort
-            nodePort: 30001
+                nodePort: 30001

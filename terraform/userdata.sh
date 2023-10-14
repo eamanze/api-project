@@ -53,7 +53,6 @@ sudo systemctl enable docker
 sudo chmod 777 /var/run/docker.sock
 sudo systemctl restart docker
 
-
 # Copying Private Key into Ansible Server and chaning its permission
 echo "${prv_key}" >> /home/ubuntu/key.pem
 sudo chmod 400 /home/ubuntu/key.pem
@@ -77,6 +76,6 @@ sudo echo "${worker2} ansible_ssh_private_key_file=/home/ubuntu/key.pem" >> /etc
 # Executing all playbooks
 sudo su -c "ansible-playbook /home/ubuntu/playbooks/setup.yml" ubuntu
 sudo su -c "ansible-playbook /home/ubuntu/playbooks/init.yml" ubuntu
-# sudo su -c "ansible-playbook /home/ubuntu/playbooks/deployment.yml" ubuntu
+sudo su -c "ansible-playbook /home/ubuntu/playbooks/deployment.yml" ubuntu
 
 sudo hostnamectl set-hostname Ansible
