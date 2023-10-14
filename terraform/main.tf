@@ -63,7 +63,6 @@ resource "aws_security_group" "sg" {
   }
 }
 
-
 #creating Ec2 for master
 resource "aws_instance" "haproxy" {
   ami                         = "ami-0ecc74eca1d66d8a6"
@@ -176,7 +175,7 @@ resource "aws_lb_target_group" "tg" {
     unhealthy_threshold = 5
     interval            = 30
     timeout             = 5
-    path                = "/get_data"
+    path                = "/"
   }
 }
 
