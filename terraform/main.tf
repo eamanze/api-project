@@ -85,10 +85,10 @@ resource "aws_instance" "haproxy" {
 # create null resource to copy playbooks folder into ansible/proxy server
 resource "null_resource" "copy-playbooks" {
   connection {
-    type                = "ssh"
-    user                = "ubuntu"
-    host                = aws_instance.haproxy.public_ip
-    private_key         = tls_private_key.keypair.private_key_pem
+    type        = "ssh"
+    user        = "ubuntu"
+    host        = aws_instance.haproxy.public_ip
+    private_key = tls_private_key.keypair.private_key_pem
   }
   provisioner "file" {
     source      = "./playbooks"
