@@ -16,6 +16,7 @@ The application is then deployed into a kubernetes cluster created using kubeadm
 This repository contains the Terraform code to deploy resources on your AWS account.  This README provides step-by-step instructions on how to execute the Terraform code in this project to deploy resources on your AWS account.
 
 
+
 ## Tech Stack used
 
 Infrastructure as code (IAC) – Terraform
@@ -29,6 +30,7 @@ Configuration Management - Ansible
 Programming Language - Python
 
 Entry point to cluster - HAProxy
+
 
 
 ## Application Breakdown
@@ -83,6 +85,7 @@ If it is being run directly, it starts the Flask application with app.run().
 The debug=True flag provides additional information for development, and host="0.0.0.0" makes the app accessible from all network interfaces on the machine.
 
 
+
 ## Prerequisites
 
 Before you begin, make sure you have the following prerequisites:
@@ -98,7 +101,7 @@ Before you begin, make sure you have the following prerequisites:
 Follow these steps to deploy resources on your AWS account using Terraform:
 
 
-### Step 1: Clone the Repository
+## Step 1: Clone the Repository
 
 Clone this GitHub repository to your local machine using the following command:
 
@@ -116,7 +119,7 @@ cd api-project/terraform/
 ```
 
 
-## Step 3: Set your values in the ```credentials.tfvars``` file in other to spin up the infrastructure in your AWS account
+## Step 3: Set your values in the ```credentials.tfvars``` file
 
 Important:
 Before applying the Terraform configuration, ensure that you update the following variables with your own values in the variable.tf file:
