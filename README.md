@@ -33,6 +33,7 @@ Entry point to cluster - HAProxy
 
 
 
+
 ## Application Breakdown
 
 This code creates a basic web application that provides two routes. The first route ("/get_data") returns a JSON response with a message and a timestamp, while the second route ("/") displays a welcome message when the main page is accessed. 
@@ -86,6 +87,7 @@ The debug=True flag provides additional information for development, and host="0
 
 
 
+
 ## Prerequisites
 
 Before you begin, make sure you have the following prerequisites:
@@ -94,6 +96,8 @@ Before you begin, make sure you have the following prerequisites:
 2. AWS CLI - Install the AWS Command Line Interface (CLI) on your local machine and configure it with your AWS credentials.
 3. Terraform - Install Terraform on your local machine.
 4. Git - Install Git on your local machine to clone this repository.
+
+
 
 
 ## Deployment Steps
