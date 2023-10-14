@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This project builds an application using Python that exposes a REST endpoint that returns the following JSON payload with the current timestamp and a static message:
+This project involves creating a Python application that provides a REST endpoint. This endpoint returns a JSON response containing the current timestamp along with a static message.:
 
 
 ```bash
@@ -29,6 +29,58 @@ Configuration Management - Ansible
 Programming Language - Python
 
 Entry point to cluster - HAProxy
+
+
+## Application Breakdown
+
+This code creates a basic web application that provides two routes. The first route ("/get_data") returns a JSON response with a message and a timestamp, while the second route ("/") displays a welcome message when the main page is accessed. 
+
+
+### Importing Libraries:
+
+The code starts by importing two libraries: Flask and jsonify.
+Flask is a Python framework used for building web applications.
+jsonify is a utility function provided by Flask to create JSON responses.
+
+
+### Initializing the Flask App:
+
+app = Flask(__name__) creates an instance of the Flask application.
+This instance is used to define routes and handle incoming requests.
+
+
+### Defining a Route - "/get_data":
+
+@app.route("/get_data", methods=["GET"]) is a decorator indicating that the function below it should be executed when a request is made to the "/get_data" route.
+The methods=["GET"] part specifies that this route will only respond to HTTP GET requests.
+
+
+### Handling the "/get_data" Request:
+
+Inside the get_data() function, the current timestamp is calculated using the time.time() function.
+It creates a dictionary named data containing a message and the timestamp.
+
+
+### Returning a JSON Response:
+
+The function returns jsonify(data), which converts the data dictionary into a JSON-formatted response.
+
+
+### Defining Another Route - "/":
+
+@app.route("/", methods=["GET"]) sets up a route for the root URL path ("/"). This means that when a user visits the main page of the application, the function index() will be called.
+
+
+### Handling the "/" Request:
+
+The index() function returns a simple string: "Welcome to my Flask app!". This will be displayed in the browser when a user visits the root URL.
+
+
+### Running the Application:
+
+The final block if __name__ == "__main__": checks if the script is being run directly.
+If it is being run directly, it starts the Flask application with app.run().
+The debug=True flag provides additional information for development, and host="0.0.0.0" makes the app accessible from all network interfaces on the machine.
 
 
 ## Prerequisites
@@ -110,7 +162,10 @@ terraform apply -var-file credentials.tfvars -auto-approve
 ```
 
 
-```Note: After finishing the preceding command and process, wait for approximately 15 minutes to allow the completion of all the playbooks in the ansible/haproxy server. Then, in order to view the application, copy the load balancer dns generated from the terraform output into your browser.```
+```Note: After finishing the preceding command and process, wait for approximately 15 minutes to allow the completion of all the playbooks in the ansible/haproxy server. Then, in order to view the application, copy the load balancer dns generated from the terraform output into your browser.
+
+When a user accesses the URL path /get_data with a GET request
+```
 
 
 ## Step 7: Clean Up
