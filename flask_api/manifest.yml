@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-app:1
+  name: flask-app:2
   namespace: my-dev
   labels:
-    app: flask-app:1
+    app: flask-app:2
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: flask-app:1
+      app: flask-app:2
   template:
     metadata:
       labels:
-        app: flask-app:1
+        app: flask-app:2
     spec:
       containers:
-        - name: flask-app:1
-          image: eamanze/flask-app:1
+        - name: flask-app:2
+          image: eamanze/flask-app:2
           ports:
             - containerPort: 5000
 
@@ -25,12 +25,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-app:1
+  name: flask-app:2
   namespace: my-dev
 spec:
   type: NodePort
   selector:
-    app: flask-app:1
+    app: flask-app:2
   ports:
     - protocol: TCP
       port: 80
