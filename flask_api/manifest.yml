@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: flaskapp
-          image: eamanze/flask-app:5
+          image: eamanze/flask-app:6
           ports:
             - containerPort: 5000
 
@@ -25,7 +25,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-app-service
+  name: flask-app:6
   namespace: my-dev
 spec:
   type: NodePort
