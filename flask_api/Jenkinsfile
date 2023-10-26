@@ -38,7 +38,7 @@ pipeline {
         stage('Deploying to kubernetes') {
             steps {
                 script {
-                    kubernetesDeploy(configs: "manifest.yml", kubeconfigId: "kubernetes")
+                    kubernetesDeploy(configs: "flask_api/manifest.yml", kubeconfigId: "kubernetes")
                 }
             }
         }
