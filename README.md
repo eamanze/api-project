@@ -96,6 +96,7 @@ Before you begin, make sure you have the following prerequisites:
 2. AWS CLI - Install the AWS Command Line Interface (CLI) on your local machine and configure it with your AWS credentials.
 3. Terraform - Install Terraform on your local machine.
 4. Git - Install Git on your local machine to clone this repository.
+5. AWS hosted zone should be create in your AWS account.
 
 
 

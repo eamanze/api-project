@@ -6,3 +6,5 @@ variable "cidr" {}
 variable "public-cidr" {}
 variable "private-cidr" {}
 variable "az" {}
+variable "domain_name" {}
+variable "domain_name2" {}

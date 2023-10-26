@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build and Push Docker Image') {
+            environment {
+                DOCKER_IMAGE = "eamanze/flask-app:${BUILD_NUMBER}"
+                REGISTRY_CREDENTIALS = credentials('docker-cred')
+            }
+            steps {
+                script {
+                    sh 'cd flask_api && docker build -t ${DOCKER_IMAGE} .'
+                    def dockerImage = docker.image("${DOCKER_IMAGE}")
+                    withDockerRegistry(credentialsId: 'docker-cred') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Update Deployment File') {
+            environment {
+                GIT_REPO_NAME = "api-project"
+                GIT_USER_NAME = "eamanze"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        git config user.email "eamanze@cloudhight.com"
+                        git config user.name "eamanze"
+                        BUILD_NUMBER=${BUILD_NUMBER}
+                        sed -i -e "s/flask-app.*/flask-app:${BUILD_NUMBER}/g" flask_api/manifest.yml
+                        git add flask_api/manifest.yml
+                        git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                    '''
+                }
+            }
+        }    
+        stage('Deploying to kubernetes') {
+            steps {
+                script {
+                    kubernetesDeploy(configs: "manifest.yml", kubeconfigId: "kubernetes")
+                }
+            }
+        }
+    }
+}
