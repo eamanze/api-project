@@ -113,19 +113,19 @@ resource "aws_security_group" "lb-sg" {
 }
 resource "aws_security_group_rule" "allow-igress-3" {
   type              = "ingress"
-  from_port         = 80
-  to_port           = 80
+  from_port         = 443
+  to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.lb-sg.id
 }
-resource "aws_security_group_rule" "allow-all-egress-2" {
+resource "aws_security_group_rule" "allow-all-egress-3" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.jenkins-sg.id
+  security_group_id = aws_security_group.lb-sg.id
 }
 
 # creating jenkns server
@@ -241,6 +241,20 @@ resource "aws_lb_listener" "listener" {
   load_balancer_arn = aws_lb.lb.arn
   port              = "80"
   protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg.arn
+  }
+}
+
+# create https listener
+resource "aws_lb_listener" "listener-2" {
+  load_balancer_arn = aws_lb.lb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.acm_certificate.arn
 
   default_action {
     type             = "forward"
