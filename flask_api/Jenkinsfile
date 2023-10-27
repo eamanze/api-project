@@ -1,6 +1,15 @@
 pipeline {
     agent any
     stages {
+        stage('Test') {
+            steps {
+                sh 'docker build -t app flask_api/'
+                sh 'docker run --name test app /bin/bash -c "pytest test.py"'
+                sh 'docker stop test'
+                sh 'docker rm test'
+                sh 'docker rmi app'
+            }
+        }
         stage('Build and Push Docker Image') {
             environment {
                 DOCKER_IMAGE = "eamanze/flask-app:${BUILD_NUMBER}"
