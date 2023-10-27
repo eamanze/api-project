@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: flaskapp
-          image: eamanze/flask-app:8
+          image: eamanze/flask-app:1
           ports:
             - containerPort: 5000
 
